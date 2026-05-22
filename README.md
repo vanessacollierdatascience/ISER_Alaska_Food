@@ -6,11 +6,12 @@
 
 ## Overview
 
-An end-to-end automated data collection, cleaning, and validation 
-pipeline built to support cost-of-living research across Alaska. 
-This pipeline collects grocery price data from major food retailers 
-operating in Alaska, enabling economic research on food access and 
-affordability that was previously unavailable at this scale.
+An end-to-end automated data collection, cleaning, validation, 
+and assembly pipeline built to support cost-of-living research 
+across Alaska. This pipeline collects grocery price data from 
+major food retailers operating in Alaska — including retailers 
+serving remote Bush communities — enabling economic research on 
+food access and affordability previously unavailable at this scale.
 
 This work contributed to ISER's cost-of-living research portfolio 
 and supported policy-relevant analysis of food pricing disparities 
@@ -18,9 +19,14 @@ across urban and rural Alaska communities.
 
 ---
 
-## What This Pipeline Does
+## Pipeline Architecture
 
-### Data Collection
+This is a fully productionized research data pipeline with 
+modular components for collection, assembly, validation, 
+and reporting.
+
+### 1. Data Collection — Retailer Scrapers
+
 Automated scrapers collect current grocery price data from 
 multiple major Alaska retailers:
 
@@ -32,37 +38,64 @@ multiple major Alaska retailers:
 | WM_PULL_CURRENT.py | Walmart | National retailer, urban Alaska locations |
 | central_food_pull.py | All retailers | Aggregation and standardization pipeline |
 
-### Pipeline Orchestration
-Runner scripts coordinate automated execution across retailers:
-- `acc_runner.py` — Alaska Commercial Company pipeline runner
-- `central_runner.py` — Master pipeline orchestrator
-- `cs_runner.py` — Carrs/Safeway pipeline runner
-
-### Data Collection Methods
-The pipeline supports multiple collection strategies:
+Multiple collection methods supported:
 - Automated web scraping for real-time price data
 - Snapshot downloads for point-in-time comparisons
-- Manual download imports for retailers with restricted access
+- Manual download imports for restricted-access retailers
 
-### Data Cleaning & Validation
-`Food_Data_Cleaning_Pipeline_Policy.py` implements:
-- Automated data integrity checks
-- Standardization across retailer-specific formats
-- Quality validation for recurring data pulls
-- Consistent product matching across stores
+### 2. Pipeline Orchestration — Runners
 
-### Specialized Reporting
-`Nome_Report_Script.py` generates reports specific to Nome, AK — 
+Dedicated runner scripts coordinate automated execution 
+per retailer:
+
+| Script | Function |
+|---|---|
+| acc_runner.py | Alaska Commercial Company runner |
+| cs_runner.py | Carrs/Safeway runner |
+| fm_runner.py | Fred Meyer runner |
+| wm_runner.py | Walmart runner |
+| central_runner.py | Master pipeline orchestrator |
+
+### 3. Master Assembly
+
+`master_assembly.py` aggregates outputs from all retailer 
+pipelines into a unified dataset. `master_assembly_bat.bat` 
+enables scheduled Windows batch execution for automated 
+recurring runs.
+
+### 4. Schema & Validation
+
+- `schema.py` — defines and enforces consistent data structure 
+  across all retailer sources
+- `master_qa.py` — dedicated quality assurance module with 
+  automated integrity checks
+- `prebuild_missing_store_months.py` — identifies and handles 
+  gaps in store coverage across time periods
+- `raw_discovery.py` — raw data exploration and anomaly detection
+
+### 5. Batch Automation & Logging
+
+- `run_food_pull.bat` — Windows batch script for scheduled 
+  automated execution
+- `pipeline_log.txt` — running pipeline execution log
+- `pipeline_run_20251231_173711.txt` — point-in-time run record
+- `run_food_pull_master.log` — master execution log
+- `ACC_20251115.log` / `central_20251217_140221.log` — 
+  retailer-specific run logs
+
+### 6. Specialized Reporting
+
+`Nome_Report_Script.py` generates reports specific to Nome, AK —
 a remote community with distinct food access challenges and 
-pricing patterns.
+significant pricing disparities relative to urban Alaska.
 
 ---
 
 ## Research Context
 
 Alaska presents unique food pricing challenges:
-- Remote communities face significant supply chain costs
-- Price disparities between urban and rural areas are substantial
+- Remote Bush communities face substantial supply chain costs
+- Price disparities between urban and rural areas are extreme
 - No comprehensive statewide food price dataset previously existed
 
 This pipeline enabled cost-of-living research at a scale and 
@@ -74,13 +107,27 @@ access and affordability in Alaska.
 
 ## Technical Stack
 
-- **Language:** Python (92.6%) · R
-- **Collection:** Automated web scraping · API integration · 
-  Scheduled workflows
-- **Processing:** Automated cleaning · Cross-retailer 
-  standardization · QA validation
+- **Languages:** Python 96% · Batchfile 4%
+- **Collection:** Automated web scraping · Snapshot downloads · 
+  Manual import handling
+- **Processing:** Schema validation · Cross-retailer 
+  standardization · Automated QA · Gap detection
+- **Automation:** Windows batch scheduling · Execution logging
+- **Dependencies:** See requirements.txt
 - **Output:** Structured datasets for statistical analysis 
   and policy reporting
+
+---
+
+## Documentation
+
+- `Food_Data_Cleaning_Pipeline_Policy.py` — cleaning 
+  policy documentation
+- `Revised Food Retail Data Pipeline.py` — updated pipeline 
+  architecture documentation
+- `WM_search_list.txt` — Walmart product search term list
+- `wm_snapshot_registry.csv` — registry tracking Walmart 
+  snapshot collection history across time periods
 
 ---
 
@@ -90,7 +137,8 @@ This pipeline was developed for use with data infrastructure
 at the University of Alaska Anchorage. Raw price data is not 
 included in this repository due to institutional data governance 
 policies. The code demonstrates pipeline architecture, collection 
-methodology, cleaning logic, and QA validation approach.
+methodology, schema validation, QA logic, and batch automation 
+approach.
 
 To adapt for your environment, update file paths and 
 retailer credentials in the configuration files.
